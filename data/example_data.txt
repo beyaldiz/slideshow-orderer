@@ -1,0 +1,6 @@
+5
+H 3 tag1 tag2 tag3
+V 2 tag2 tag3
+V 2 tag4 tag1
+H 2 tag3 tag2
+H 2 tag4 tag2
