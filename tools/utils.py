@@ -19,6 +19,9 @@ class Data:
             for i, photo_raw in enumerate(photos_raw):
                 raw_splitted = photo_raw.split()
                 self.photos.append(Photo(i, set(raw_splitted[2:])))
+    
+    def __len__(self):
+        return self.n
 
 
 class Gene:
@@ -30,8 +33,19 @@ class Gene:
     def __str__(self):
         return "Gene: " + str(self.seq)
     
+    def __len__(self):
+        return len(self.seq)
+
+    def copy(self):
+        copy_gene = Gene(len(self))
+        copy_gene.seq = self.seq.copy()
+        return copy_gene
+    
     def shuffle(self):
         random.shuffle(self.seq)
+    
+    def swap(self, idx1, idx2):
+        self.seq[idx1], self.seq[idx2] = self.seq[idx2], self.seq[idx1]
 
 
 def common_tags_n(photo1: Photo, photo2: Photo) -> int:
@@ -55,6 +69,37 @@ def get_score(data: Data, gene: Gene) -> int:
     return total_score
 
 
+def score_diff_swap(data: Data, gene: Gene, idx1: int, idx2: int):
+    assert idx1 != idx2
+    if idx1 > idx2:
+        idx1, idx2 = idx2, idx1
+    seq = gene.seq
+    photos = data.photos
+    score_diff = 0
+    if idx1 != 0 and idx1 + 1 != idx2:
+        score_diff -= get_score_pair(photos[seq[idx1]], photos[seq[idx1 - 1]]) + get_score_pair(photos[seq[idx1]], photos[seq[idx1 + 1]])
+        score_diff += get_score_pair(photos[seq[idx2]], photos[seq[idx1 - 1]]) + get_score_pair(photos[seq[idx2]], photos[seq[idx1 + 1]])
+    if idx2 != len(gene) - 1 and idx1 + 1 != idx2:
+        score_diff -= get_score_pair(photos[seq[idx2]], photos[seq[idx2 - 1]]) + get_score_pair(photos[seq[idx2]], photos[seq[idx2 + 1]])
+        score_diff += get_score_pair(photos[seq[idx1]], photos[seq[idx2 - 1]]) + get_score_pair(photos[seq[idx1]], photos[seq[idx2 + 1]])
+    if idx1 == 0 and idx1 + 1 != idx2:
+        score_diff -= get_score_pair(photos[seq[idx1]], photos[seq[idx1 + 1]])
+        score_diff += get_score_pair(photos[seq[idx2]], photos[seq[idx1 + 1]])
+    if idx2 == len(gene) - 1 and idx1 + 1 != idx2:
+        score_diff -= get_score_pair(photos[seq[idx2]], photos[seq[idx2 - 1]])
+        score_diff += get_score_pair(photos[seq[idx1]], photos[seq[idx2 - 1]])
+    if idx1 + 1 == idx2:
+        if idx1 == 0:
+            score_diff -= get_score_pair(photos[seq[idx2]], photos[seq[idx2 + 1]])
+            score_diff += get_score_pair(photos[seq[idx1]], photos[seq[idx2 + 1]])
+        elif idx2 == len(gene) - 1:
+            score_diff -= get_score_pair(photos[seq[idx1]], photos[seq[idx1 - 1]])
+            score_diff += get_score_pair(photos[seq[idx2]], photos[seq[idx1 - 1]])
+        else:
+            score_diff -= get_score_pair(photos[seq[idx2]], photos[seq[idx2 + 1]]) + get_score_pair(photos[seq[idx1]], photos[seq[idx1 - 1]])
+            score_diff += get_score_pair(photos[seq[idx1]], photos[seq[idx2 + 1]]) + get_score_pair(photos[seq[idx2]], photos[seq[idx1 - 1]])
+    return score_diff
+    
 def test():
     a = Data("data/inputs/b_lovely_landscapes.txt")
     b = Gene(a.n, shuffle=True)
