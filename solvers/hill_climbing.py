@@ -1,9 +1,9 @@
 import random
 import itertools
+
 from tqdm import tqdm
 
-
-from tools.utils import Data, Gene, get_score, score_diff_swap
+from tools.utils import Data, Gene, get_score, score_diff_swap, window_mutate
 
 
 class HillClimbing:
@@ -14,10 +14,10 @@ class HillClimbing:
         self.score = get_score(self.data, self.gene)
         self.best_score = 0
         self.best_gene = None
-    
+
     def run(self):
         with tqdm(total=self.num_iters) as pbar:
-            for idx1, idx2 in itertools.islice(itertools.combinations(range(self.data.n), 2), self.num_iters):
+            for iter_cnt, (idx1, idx2) in enumerate(itertools.islice(itertools.cycle(itertools.combinations(range(self.data.n), 2)), self.num_iters)):
                 score_diff = score_diff_swap(self.data, self.gene, idx1, idx2)
                 if score_diff > 0:
                     self.gene.swap(idx1, idx2)
@@ -30,8 +30,8 @@ class HillClimbing:
 
 
 def main():
-    data = Data("data/c_memorable_moments.txt")
-    solver = HillClimbing(data, 1000000)
+    data = Data("data/a.txt")
+    solver = HillClimbing(data, 10)
     solver.run()
 
 
